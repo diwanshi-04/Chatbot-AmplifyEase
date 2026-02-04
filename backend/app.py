@@ -8,8 +8,11 @@ CORS(app)
 def home():
     return "Backend is running!"
 
-@app.route("/chat", methods=["POST"])
+@app.route("/chat", methods=["GET", "POST"])
 def chat():
+    if request.method == "GET":
+        return jsonify({"reply": "Chat API is working. Use POST request."})
+
     data = request.json
     user_message = data.get("message", "").lower()
 
@@ -61,4 +64,3 @@ def chat():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-
