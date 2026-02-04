@@ -8,50 +8,65 @@ const userInput = document.getElementById("user-input");
 const themeToggle = document.getElementById("theme-toggle");
 
 let isOpen = false;
+let chatHistory = [];
 
-/* Toggle chatbot open / close */
+/* ================================
+   UI TOGGLE CONTROLS
+================================ */
+
 chatbotButton.onclick = () => {
-  isOpen = !isOpen;
-  chatbotContainer.classList.toggle("show");
-
-  if (isOpen && messagesDiv.innerHTML === "") {
-    botReply("Hi 👋 I'm AmplifyBot. How can I help you?");
-    showOptions(["Pricing", "Product Info", "Contact Support"]);
-  }
+  toggleChatWindow();
 };
 
 closeBtn.onclick = () => {
-  chatbotContainer.classList.remove("show");
-  isOpen = false;
+  closeChatWindow();
 };
 
-/* Dark mode toggle */
 themeToggle.onclick = () => {
-  chatbotContainer.classList.toggle("dark");
-  themeToggle.innerText = chatbotContainer.classList.contains("dark") ? "☀️" : "🌙";
+  toggleTheme();
 };
 
-/* Send message */
-sendBtn.onclick = sendMessage;
+/* ================================
+   INPUT HANDLING
+================================ */
 
-function sendMessage() {
+sendBtn.onclick = () => {
+  processUserInput();
+};
+
+userInput.addEventListener("keypress", function (e) {
+  if (e.key === "Enter") {
+    processUserInput();
+  }
+});
+
+/* ================================
+   CORE CHAT FUNCTIONS
+================================ */
+
+function processUserInput() {
   const text = userInput.value.trim();
-  if (!text) return;
+  if (text === "") return;
 
-  userMessage(text);
+  addUserMessage(text);
+  saveMessage("user", text);
   userInput.value = "";
+
   handleConversation(text);
 }
 
-/* Handle conversation via backend */
 function handleConversation(text) {
-  typing(async () => {
+  showTypingIndicator(async () => {
     const reply = await sendToBackend(text);
-    botReply(reply);
+    addBotMessage(reply);
+    saveMessage("bot", reply);
   });
 }
 
-/* Send message to Flask backend */
+/* ================================
+   BACKEND COMMUNICATION
+================================ */
+
 async function sendToBackend(message) {
   try {
     const response = await fetch("http://127.0.0.1:5000/chat", {
@@ -66,36 +81,75 @@ async function sendToBackend(message) {
     return data.reply;
   } catch (error) {
     console.error("Backend error:", error);
-    return "⚠️ Server is not responding right now.";
+    return "⚠️ Unable to connect to server. Please try again later.";
   }
 }
 
-/* Show bot message */
-function botReply(text) {
+/* ================================
+   MESSAGE RENDERING
+================================ */
+
+function addBotMessage(text) {
   const div = document.createElement("div");
   div.className = "bot-message";
-  div.innerText = text;
+  div.innerText = formatWithTimestamp(text);
   messagesDiv.appendChild(div);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  scrollToBottom();
 }
 
-/* Show user message */
-function userMessage(text) {
+function addUserMessage(text) {
   const div = document.createElement("div");
   div.className = "user-message";
-  div.innerText = text;
+  div.innerText = formatWithTimestamp(text);
   messagesDiv.appendChild(div);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  scrollToBottom();
 }
 
-/* Show quick reply buttons */
+function showTypingIndicator(callback) {
+  const typingDiv = document.createElement("div");
+  typingDiv.className = "bot-message typing";
+  typingDiv.innerText = "Typing...";
+  messagesDiv.appendChild(typingDiv);
+  scrollToBottom();
+
+  setTimeout(() => {
+    messagesDiv.removeChild(typingDiv);
+    callback();
+  }, 900);
+}
+
+/* ================================
+   UI UTILITIES
+================================ */
+
+function toggleChatWindow() {
+  isOpen = !isOpen;
+  chatbotContainer.classList.toggle("show");
+
+  if (isOpen && messagesDiv.innerHTML === "") {
+    addBotMessage("Hi 👋 I'm AmplifyBot. How can I help you?");
+    showOptions(["Pricing", "Product Info", "Contact Support"]);
+  }
+}
+
+function closeChatWindow() {
+  chatbotContainer.classList.remove("show");
+  isOpen = false;
+}
+
+function toggleTheme() {
+  chatbotContainer.classList.toggle("dark");
+  themeToggle.innerText = chatbotContainer.classList.contains("dark") ? "☀️" : "🌙";
+}
+
 function showOptions(options) {
   optionsDiv.innerHTML = "";
   options.forEach(option => {
     const btn = document.createElement("button");
     btn.innerText = option;
     btn.onclick = () => {
-      userMessage(option);
+      addUserMessage(option);
+      saveMessage("user", option);
       optionsDiv.innerHTML = "";
       handleConversation(option);
     };
@@ -103,16 +157,35 @@ function showOptions(options) {
   });
 }
 
-/* Typing animation */
-function typing(callback) {
-  const typingDiv = document.createElement("div");
-  typingDiv.className = "bot-message typing";
-  typingDiv.innerText = "Typing...";
-  messagesDiv.appendChild(typingDiv);
+function scrollToBottom() {
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-  setTimeout(() => {
-    messagesDiv.removeChild(typingDiv);
-    callback();
-  }, 800);
 }
+
+/* ================================
+   DATA & HELPERS
+================================ */
+
+function saveMessage(sender, text) {
+  const entry = {
+    sender: sender,
+    text: text,
+    time: new Date().toLocaleTimeString()
+  };
+  chatHistory.push(entry);
+}
+
+function formatWithTimestamp(text) {
+  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return `${text}\n🕒 ${time}`;
+}
+
+/* ================================
+   EXTRA CONTROLS (OPTIONAL)
+================================ */
+
+function clearChat() {
+  messagesDiv.innerHTML = "";
+  chatHistory = [];
+  addBotMessage("Chat cleared 🧹 How can I help you again?");
+}
+
