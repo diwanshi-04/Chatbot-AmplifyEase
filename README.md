@@ -8,7 +8,7 @@ The chatbot provides interactive responses, dark mode support, typing animation,
 
 This project was created as part of the assignment for the **Software Development Internship at AmplifyEase**.
 
-To add this chatbot on your project or in any project just add following in your code
+To add this chatbot on your project or in any website just add following in your code
 <script src="https://joyful-paletas-3553c6.netlify.app/script.js"></script>
 
 
