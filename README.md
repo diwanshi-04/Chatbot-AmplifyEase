@@ -1,11 +1,16 @@
 
 #  Chatbot Widget for AmplifyEase
 ## Live Demo
+https://joyful-paletas-3553c6.netlify.app/
 
 A modern and embeddable chatbot widget built using **HTML, CSS, JavaScript** (frontend) and **Python Flask REST API** (backend).  
 The chatbot provides interactive responses, dark mode support, typing animation, and can be embedded into any website.
 
 This project was created as part of the assignment for the **Software Development Internship at AmplifyEase**.
+
+To add this chatbot on your project or in any project just add following in your code
+<script src="https://joyful-paletas-3553c6.netlify.app/script.js"></script>
+
 
 ## ✨ Features
 
