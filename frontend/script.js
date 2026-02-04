@@ -69,7 +69,7 @@ function handleConversation(text) {
 
 async function sendToBackend(message) {
   try {
-    const response = await fetch("https://chatbot-amplifyease.onrender.com", {
+    const response = await fetch("https://chatbot-amplifyease.onrender.com/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -84,6 +84,7 @@ async function sendToBackend(message) {
     return "⚠️ Unable to connect to server. Please try again later.";
   }
 }
+
 
 /* ================================
    MESSAGE RENDERING
